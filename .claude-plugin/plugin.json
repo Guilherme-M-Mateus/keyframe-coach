@@ -1,0 +1,20 @@
+{
+  "name": "keyframe-coach",
+  "description": "Animate game characters and props in Blender like a game animator: the 12 principles for games, block/polish workflow, an animation audit, and Unity/Unreal/Godot/Roblox export.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Guilherme Mateus"
+  },
+  "homepage": "https://github.com/Guilherme-M-Mateus/keyframe-coach",
+  "repository": "https://github.com/Guilherme-M-Mateus/keyframe-coach",
+  "license": "MIT",
+  "keywords": [
+    "blender",
+    "animation",
+    "game-dev",
+    "unity",
+    "unreal",
+    "godot",
+    "roblox"
+  ]
+}

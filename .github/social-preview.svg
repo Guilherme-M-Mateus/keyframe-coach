@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a1d23"/>
+      <stop offset="0.55" stop-color="#121418"/>
+      <stop offset="1" stop-color="#0c0d10"/>
+    </linearGradient>
+    <linearGradient id="curve" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C97B2B"/>
+      <stop offset="0.55" stop-color="#E8A33D"/>
+      <stop offset="1" stop-color="#F7D79A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#E8A33D" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#E8A33D" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <circle cx="1010" cy="320" r="330" fill="url(#glow)"/>
+
+  <!-- faint grid -->
+  <g stroke="#ffffff" stroke-opacity="0.035" stroke-width="1">
+    <path d="M0 160H1280M0 320H1280M0 480H1280"/>
+    <path d="M160 0V640M320 0V640M480 0V640M640 0V640M800 0V640M960 0V640M1120 0V640"/>
+  </g>
+
+  <g font-family="Adwaita Sans, Liberation Sans, Arial, sans-serif">
+    <!-- left column -->
+    <text x="84" y="168" fill="#E8A33D" font-size="21" font-weight="700" letter-spacing="5">CLAUDE CODE SKILL</text>
+
+    <text x="84" y="286" fill="#F7F3EA" font-size="86" font-weight="700" letter-spacing="-1.5">Keyframe Coach</text>
+
+    <rect x="84" y="318" width="96" height="5" rx="2.5" fill="#E8A33D"/>
+
+    <text x="84" y="386" fill="#D9D6CD" font-size="32" font-weight="400">Animate in Blender like</text>
+    <text x="84" y="428" fill="#D9D6CD" font-size="32" font-weight="400">a game animator.</text>
+
+    <text x="84" y="502" fill="#8E959F" font-size="22">12 principles, timed in frames · loop, foot-slide</text>
+    <text x="84" y="534" fill="#8E959F" font-size="22">and quaternion audit · exports for every engine</text>
+
+    <text x="84" y="592" fill="#5F666F" font-size="18" letter-spacing="0.5">github.com/Guilherme-M-Mateus/keyframe-coach</text>
+  </g>
+
+  <!-- right: timing graph -->
+  <g>
+    <rect x="790" y="118" width="424" height="404" rx="20" fill="#ffffff" fill-opacity="0.028" stroke="#ffffff" stroke-opacity="0.075"/>
+
+    <!-- axes -->
+    <path d="M826 478H1180" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.5"/>
+    <path d="M826 154V478" stroke="#ffffff" stroke-opacity="0.10" stroke-width="1.5"/>
+    <g stroke="#ffffff" stroke-opacity="0.06" stroke-width="1">
+      <path d="M826 404H1180M826 330H1180M826 256H1180M826 182H1180"/>
+    </g>
+
+    <!-- keyframe guides -->
+    <g stroke="#E8A33D" stroke-opacity="0.22" stroke-width="1.5" stroke-dasharray="5 7">
+      <path d="M858 430V478"/>
+      <path d="M972 430V478"/>
+      <path d="M1092 214V478"/>
+      <path d="M1164 214V478"/>
+    </g>
+
+    <!-- curve: hold, move, hold -->
+    <path d="M858 430 C900 430 934 430 972 430 C1012 430 1042 214 1092 214 C1126 214 1146 214 1164 214"
+          fill="none" stroke="url(#curve)" stroke-width="7" stroke-linecap="round"/>
+
+    <!-- diamonds -->
+    <g fill="#F7F3EA">
+      <rect x="851" y="423" width="14" height="14" rx="2" transform="rotate(45 858 430)"/>
+      <rect x="965" y="423" width="14" height="14" rx="2" transform="rotate(45 972 430)"/>
+      <rect x="1085" y="207" width="14" height="14" rx="2" transform="rotate(45 1092 214)"/>
+      <rect x="1157" y="207" width="14" height="14" rx="2" transform="rotate(45 1164 214)"/>
+    </g>
+
+    <g font-family="Adwaita Sans, Liberation Sans, Arial, sans-serif" font-size="17" fill="#7A818B">
+      <text x="848" y="508">1</text>
+      <text x="962" y="508">8</text>
+      <text x="1080" y="508">16</text>
+      <text x="1148" y="508">24</text>
+      <text x="826" y="140" font-size="16" letter-spacing="2.5" fill="#6A717B">TIMING</text>
+    </g>
+  </g>
+</svg>
