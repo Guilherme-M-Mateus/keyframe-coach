@@ -1,0 +1,18 @@
+{
+  "name": "keyframe-coach",
+  "description": "Keyframe Coach — Blender animation skill for Claude Code.",
+  "owner": {
+    "name": "Guilherme Mateus"
+  },
+  "plugins": [
+    {
+      "name": "keyframe-coach",
+      "description": "Animate game characters and props in Blender like a game animator: the 12 principles for games, block/polish workflow, an animation audit, and Unity/Unreal/Godot/Roblox export.",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "Guilherme Mateus"
+      }
+    }
+  ]
+}

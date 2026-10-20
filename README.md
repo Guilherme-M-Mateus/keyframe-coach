@@ -70,13 +70,15 @@ Two tests on Claude Opus 5.5, each run once with and once without the skill, usi
 
 ## Install
 
-Clone into your Claude Code skills folder:
+It's a Claude Code plugin, so one command:
 
 ```bash
-git clone https://github.com/Guilherme-M-Mateus/keyframe-coach ~/.claude/skills/keyframe-coach
+claude plugin install keyframe-coach --marketplace Guilherme-M-Mateus/keyframe-coach
 ```
 
-Restart Claude Code. The skill shows up as `/keyframe-coach`.
+That registers this repo as a marketplace and installs the plugin at user scope. Inside a session, the same in two steps: `/plugin marketplace add Guilherme-M-Mateus/keyframe-coach`, then `/plugin install keyframe-coach@keyframe-coach`.
+
+The skill shows up as `/keyframe-coach`.
 
 ## Usage
 
@@ -99,13 +101,13 @@ Why does my walk cycle slide in Unity?
 `scripts/audit.py` is read-only and runs inside Blender (through the MCP connector, or headless):
 
 ```python
-import os
-exec(open(os.path.expanduser("~/.claude/skills/keyframe-coach/scripts/audit.py")).read())
+# <skill-dir> is the installed skill folder, which holds scripts/audit.py
+exec(open("<skill-dir>/scripts/audit.py").read())
 audit("Armature", engine="unity", loop=True)
 ```
 
 ```bash
-blender -b walk.blend --python-expr "exec(open('scripts/audit.py').read()); audit('Armature', loop=True)"
+blender -b walk.blend --python-expr "exec(open('skills/keyframe-coach/scripts/audit.py').read()); audit('Armature', loop=True)"
 ```
 
 Example output:
@@ -134,12 +136,17 @@ It finds feet by bone name (`foot`, `ankle`, `leg_ik`); pass `feet=[...]` if you
 
 ```text
 keyframe-coach/
-├── SKILL.md              # Workflow, questions, connector setup, audit usage
-├── references/
-│   ├── principles.md     # The 12 principles for games, style dials, frame budgets
-│   └── engines.md        # Export settings for Unity, Unreal, Godot, Roblox
-├── scripts/
-│   └── audit.py          # Read-only animation audit
+├── .claude-plugin/
+│   ├── plugin.json       # Plugin manifest
+│   └── marketplace.json  # Lets this repo install itself as a marketplace
+├── skills/keyframe-coach/
+│   ├── SKILL.md          # Workflow, questions, connector setup, audit usage
+│   ├── references/
+│   │   ├── principles.md # The 12 principles for games, style dials, frame budgets
+│   │   └── engines.md    # Export settings for Unity, Unreal, Godot, Roblox
+│   └── scripts/
+│       └── audit.py      # Read-only animation audit
+├── .github/              # Social preview image
 └── assets/               # README comparison GIFs
 ```
 
