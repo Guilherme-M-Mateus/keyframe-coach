@@ -14,7 +14,7 @@ Frame counts assume 30 fps. Scale them for other rates (×2 at 60 fps, ×0.8 at 
 ## Principles
 
 **1. Timing.** Count frames, don't eyeball them. Rough budgets (30 fps):
-- Walk cycle (biped): 30–36 frames for 2 steps. Run: 16–22. Idle loop: 60–120. Four or more legs: see legs.md.
+- Walk cycle: 30–36 frames for 2 steps. Run: 16–22. Idle loop: 60–120.
 - Player light attack: startup 2–5, active 2–4, recovery 8–15. Heavy: startup 8–15.
 - Jump: crouch 3–4, rise and fall driven by gameplay, land 4–8.
 Mark the contact and hit frames with timeline markers so gameplay code can use them.
