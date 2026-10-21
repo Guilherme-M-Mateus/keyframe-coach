@@ -131,7 +131,7 @@ FEET checked: b_LeftFoot02_018, b_RightFoot02_022, b_LeftHand_011, b_RightHand_0
 | Constraints | IK and other constraints that need baking on export (only when `engine` is set) |
 | Interpolation | Leftover linear or constant keys |
 
-It finds feet by shape (the lowest deform bone of each leg in rest pose), so it works for any number of legs and any naming; pass `feet=[...]` to override. Treat its output as hints, not verdicts.
+Pass `feet=[...]` with the lowest bone of every leg (any number of legs); the foot checks are skipped without it, and a listed bone that never reaches the floor is reported. Treat its output as hints, not verdicts.
 
 Self-test: `blender -b --factory-startup --python-exit-code 1 --python tests/test_audit.py`.
 

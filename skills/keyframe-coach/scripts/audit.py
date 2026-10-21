@@ -112,15 +112,10 @@ def audit(arm_name, engine="", loop=None, feet=None, in_place=None, eps=1e-3):
         out.append(f"CONSTRAINTS on {len(cons)} bones: make sure export bakes animation (Bake Animation / glTF sampling)")
 
     # Foot contact: planted feet should be still (root motion) or move at constant speed (in-place)
-    mw = obj.matrix_world
-    zs = [(mw @ v).z for b in obj.data.bones for v in (b.head_local, b.tail_local)]
-    height = max(1e-6, max(zs) - min(zs))
-    auto = not feet
-    if auto:  # by shape, so any leg count or naming works: the lowest deform bone of each leg in rest pose
-        low = {b.name for b in ([b for b in obj.data.bones if b.use_deform] or obj.data.bones)
-               if min((mw @ b.head_local).z, (mw @ b.tail_local).z) - min(zs) < 0.15 * height}
-        feet = sorted(n for n in low if not any(c.name in low for c in obj.data.bones[n].children_recursive))
     if feet:
+        mw = obj.matrix_world
+        zs = [(mw @ v).z for b in obj.data.bones for v in (b.head_local, b.tail_local)]
+        height = max(1e-6, max(zs) - min(zs))
         # the foot's sole = skinned vertices that follow that bone most (bone ends miss toes the rig has no bone for)
         skins = [m for m in scene.objects if m.type == "MESH" and m.find_armature() == obj]
         soles = {n: [(m, [v.index for v in m.data.vertices if v.groups and
@@ -142,9 +137,10 @@ def audit(arm_name, engine="", loop=None, feet=None, in_place=None, eps=1e-3):
                 sole = [zs[m][i] for m, idx in soles[n] for i in idx]
                 low[n].append(min(sole) if sole else min(q.z for q in track[n][-1]))
         scene.frame_set(cur)
-        if auto:  # drop low bones that never come down to the floor in this clip (a hanging tail in rest pose)
-            feet = [n for n in feet if min(low[n]) - mw.translation.z < 0.03 * height]
-            track = {n: track[n] for n in feet}
+        for n in feet:  # the caller picked these; a bone that never reaches the floor is probably the wrong one
+            if min(low[n]) - mw.translation.z > 0.03 * height:
+                out.append(f"FOOT NOT ON FLOOR ({n}): never comes down to the floor (armature origin); wrong bone, or the clip is airborne")
+                del track[n]
         if in_place is None and track:
             in_place = max((ps[-1][0] - ps[0][0]).to_2d().length for ps in track.values()) < 0.1 * height
         for n, ps in track.items():
@@ -170,9 +166,9 @@ def audit(arm_name, engine="", loop=None, feet=None, in_place=None, eps=1e-3):
                     out.append(f"FOOT SLIDE ({n}): contact speed uneven ({min(speeds):.3f}-{max(speeds):.3f}/frame); in-place feet should slide at constant speed")
             elif sum(speeds) > 0.02 * height:
                 out.append(f"FOOT SLIDE ({n}): planted foot drifts {sum(speeds):.3f} units during contact")
-        out.append(f"FEET checked: {', '.join(feet) or 'none reach the floor'} ({'in-place' if in_place else 'root motion'})")
+        out.append(f"FEET checked: {', '.join(track) or 'none'} ({'in-place' if in_place else 'root motion'})")
     else:
-        out.append("FEET: none detected; pass feet=[...] to check sliding")
+        out.append("FEET: not checked; pass feet=[the lowest bone of every leg]")
 
     if len(out) == 1:
         out.append("No issues found.")

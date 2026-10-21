@@ -24,7 +24,7 @@ Rough cycle lengths at 30 fps (bigger creatures are slower): dog walk 24–32, t
 2. Animate one leg's full cycle (plant, push back, lift, swing forward, reach), on the leg's own controls.
 3. Copy it to the other legs and shift each copy by its phase × cycle length in the Dope Sheet. Add a Cycles F-curve modifier so the shifted keys wrap around the loop.
 4. Break the symmetry a little (1–2 frames, a slightly different lift per leg). Perfectly even phases look mechanical.
-5. Animate the body on top (below), then run the audit: it finds the lowest bone of every leg by itself; pass `feet=[...]` if one is missing.
+5. Animate the body on top (below), then run the audit with `feet=[...]` listing the lowest bone of every leg.
 
 ## Body and legs
 

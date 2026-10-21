@@ -48,9 +48,9 @@ Blender 5.x: `action.fcurves` is gone. Read curves through `bpy_extras.anim_util
 
 ```python
 exec(open("<SKILL_DIR>/scripts/audit.py").read())
-audit("Armature", engine="unity", loop=True)   # feet=[...] if it misses a leg
+audit("Armature", engine="unity", loop=True, feet=["foot.L", "foot.R"])
 ```
 
 If the connector is down, don't skip the audit: save the .blend and run it headless with `blender -b file.blend --python-expr "exec(open('<SKILL_DIR>/scripts/audit.py').read()); audit('Armature', loop=True)"`.
 
-Treat its output as hints, not verdicts: a linear key on a mechanical motion or a held pose on purpose is fine. Tell the user what it found and what you will change before changing it.
+Pass `feet` as the lowest bone of every leg, all of them (front paws are often named hand or wrist); the foot checks are skipped without it. Treat its output as hints, not verdicts: a linear key on a mechanical motion or a held pose on purpose is fine. Tell the user what it found and what you will change before changing it.

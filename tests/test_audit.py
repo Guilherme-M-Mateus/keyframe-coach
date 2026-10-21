@@ -142,9 +142,10 @@ def legged(n):
     return arm, sorted(f"lower{i}" for i in range(n))
 
 
-# Feet found by shape for 2, 4, 6 and 8 legs (not by name); a tail hanging low in rest pose but lifted is not a foot
-for n in (2, 4, 6, 8):
-    arm, lows = legged(n)
-    assert f"FEET checked: {', '.join(lows)} " in "\n".join(audit(arm.name)), n
+# Feet come from the caller; a passed bone that never reaches the floor (a lifted tail) is called out and skipped
+arm, lows = legged(4)
+out = "\n".join(audit(arm.name, feet=lows + ["tail"]))
+assert "FOOT NOT ON FLOOR (tail)" in out and f"FEET checked: {', '.join(lows)} " in out
+assert "FEET: not checked" in "\n".join(audit(arm.name))
 print("test_audit: all checks passed")
 sys.exit(0)
