@@ -34,22 +34,32 @@ def audit(arm_name, engine="", loop=None, feet=None, in_place=None, eps=1e-3):
     if not (obj.animation_data and obj.animation_data.action):
         print(f"{arm_name}: no active action"); return
     act, fcs = _fcurves(obj)
-    if act.use_frame_range:
-        f0, f1 = int(act.frame_start), int(act.frame_end)
-    else:
-        f0, f1 = scene.frame_start, scene.frame_end
+    # manual range if set, else the keyed range (a loop keyed 1-17 with 17 = 1 renders 1-16)
+    f0, f1 = (int(f) for f in act.frame_range)
     engine = engine.lower()
     out = [f"Audit '{act.name}' on {arm_name}: frames {f0}-{f1} @ {scene.render.fps} fps, {len(fcs)} curves"]
 
-    # Loop seams: value and slope at start must match end (Unity-style duplicated end frame)
+    # Loop seams: end value must equal start; on hand-keyed Bezier curves the end handles must match too.
+    # shortcut: sampled curves (keys every 1-2 frames) carry the motion's own kinks, e.g. a paw landing on frame 1, so
+    # their tangents aren't judged; compare evaluated slopes against a cyclic fit if scripted seam hitches slip through
     if loop:
-        bad = []
+        bad = set()
         for fc in fcs:
-            v0, v1 = fc.evaluate(f0), fc.evaluate(f1)
-            s0, s1 = fc.evaluate(f0 + 1) - v0, v1 - fc.evaluate(f1 - 1)
-            if abs(v0 - v1) > eps or abs(s0 - s1) > max(eps, 0.25 * abs(s0)):
-                bad.append(f"{fc.data_path}[{fc.array_index}] (start {v0:.3f}/end {v1:.3f})")
-        out.append(f"LOOP SEAM: {len(bad)} curves don't match start/end" + (": " + "; ".join(bad[:8]) if bad else ""))
+            kp = fc.keyframe_points
+            hitch = False
+            if (len(kp) > 1 and kp[0].co.x == f0 and kp[-1].co.x == f1 and kp[0].interpolation == "BEZIER"
+                    and (f1 - f0) / (len(kp) - 1) > 2):
+                a, z = kp[0], kp[-1]
+                s0 = (a.handle_right.y - a.co.y) / max(1e-6, a.handle_right.x - a.co.x)
+                s1 = (z.co.y - z.handle_left.y) / max(1e-6, z.co.x - z.handle_left.x)
+                # speed the loop should carry through the seam, from the keys either side of it
+                through = (kp[1].co.y - kp[-2].co.y) / (kp[1].co.x - kp[-2].co.x + f1 - f0)
+                hitch = (abs(s0 - s1) > max(eps, 0.25 * max(abs(s0), abs(s1)))  # jumps speed at the seam
+                         or max(abs(s0), abs(s1)) < 0.25 * abs(through) - eps)  # eases to a stop mid-motion
+            if abs(fc.evaluate(f0) - fc.evaluate(f1)) > eps or hitch:
+                bad.add(_bone(fc) or fc.data_path)
+        if bad:
+            out.append(f"LOOP SEAM: start/end value or speed don't match (a Cycles F-curve modifier fixes end handles) on {', '.join(sorted(bad)[:8])}")
 
     # Interpolation leftovers
     lin = sum(1 for fc in fcs for k in fc.keyframe_points if k.interpolation in {"LINEAR", "CONSTANT"})
@@ -86,6 +96,10 @@ def audit(arm_name, engine="", loop=None, feet=None, in_place=None, eps=1e-3):
         if b:
             keyset.setdefault(b, set()).update(round(k.co[0]) for k in fc.keyframe_points)
     multi = {b: s for b, s in keyset.items() if len(s) > 2}
+    # shortcut: key timing says nothing about baked or scripted clips (keys every 1-2 frames); measure motion timing if those need these checks
+    if multi and max(b - a for s in multi.values() for a, b in zip(sorted(s), sorted(s)[1:])) <= 2:
+        out.append("OVERLAP/TWINNING not checked: keys every 1-2 frames (baked or scripted)")
+        multi = {}
     if len(multi) > 2 and len({frozenset(s) for s in multi.values()}) == 1:
         out.append("NO OVERLAP: every animated bone is keyed on the same frames; offset follow-through parts 1-3 frames")
     twins = [b for b in multi if _mirror(b) in multi and b < _mirror(b) and multi[b] == multi[_mirror(b)]]
@@ -94,29 +108,53 @@ def audit(arm_name, engine="", loop=None, feet=None, in_place=None, eps=1e-3):
 
     # Constraints the engine won't evaluate
     cons = [pb.name for pb in obj.pose.bones if any(c.enabled and c.influence > 0 for c in pb.constraints)]
-    if cons:
+    if cons and engine:
         out.append(f"CONSTRAINTS on {len(cons)} bones: make sure export bakes animation (Bake Animation / glTF sampling)")
 
     # Foot contact: planted feet should be still (root motion) or move at constant speed (in-place)
     feet = feet or [pb.name for pb in obj.pose.bones if re.search(r"foot|ankle|leg.?ik", pb.name, re.I)]
     if feet:
-        zs = [b.head_local.z for b in obj.data.bones] + [b.tail_local.z for b in obj.data.bones]
-        height = max(1e-6, (max(zs) - min(zs)) * max(obj.scale))
+        mw = obj.matrix_world
+        zs = [(mw @ v).z for b in obj.data.bones for v in (b.head_local, b.tail_local)]
+        height = max(1e-6, max(zs) - min(zs))
+        # the foot's sole = skinned vertices that follow that bone most (bone ends miss toes the rig has no bone for)
+        skins = [m for m in scene.objects if m.type == "MESH" and m.find_armature() == obj]
+        soles = {n: [(m, [v.index for v in m.data.vertices if v.groups and
+                          m.vertex_groups[max(v.groups, key=lambda g: g.weight).group].name == n]) for m in skins] for n in feet}
         cur = scene.frame_current
-        track = {n: [] for n in feet}
+        track = {n: [] for n in feet}  # per frame: (head, tail) in world space
+        low = {n: [] for n in feet}  # per frame: lowest point of the foot (sole, else bone end)
         for f in range(f0, f1 + 1):
             scene.frame_set(f)
+            dg = bpy.context.evaluated_depsgraph_get()
+            zs = {}
+            for m in skins:
+                ev = m.evaluated_get(dg)
+                zs[m] = [(ev.matrix_world @ v.co).z for v in ev.to_mesh().vertices]
+                ev.to_mesh_clear()
             for n in feet:
-                pb = obj.pose.bones[n]  # IK chain end: the tail is the foot, the head is the knee
-                pt = pb.tail if any(c.type == "IK" for c in pb.constraints) else pb.head
-                track[n].append((obj.matrix_world @ pt).copy())
+                pb = obj.pose.bones[n]
+                track[n].append((mw @ pb.head, mw @ pb.tail))
+                sole = [zs[m][i] for m, idx in soles[n] for i in idx]
+                low[n].append(min(sole) if sole else min(q.z for q in track[n][-1]))
         scene.frame_set(cur)
         if in_place is None:
-            in_place = max((ps[-1] - ps[0]).to_2d().length for ps in track.values()) < 0.1 * height
+            in_place = max((ps[-1][0] - ps[0][0]).to_2d().length for ps in track.values()) < 0.1 * height
         for n, ps in track.items():
-            zmin = min(p.z for p in ps)
-            speeds = [((b - a).to_2d()).length for a, b, in zip(ps, ps[1:])
-                      if a.z - zmin < 0.03 * height and b.z - zmin < 0.03 * height]
+            # planted point = whichever end (heel or toe) stays on the floor; its ground travel is the slide,
+            # so a heel-toe roll reads still while a foot sliding flat on the floor still counts
+            # game rigs keep the armature origin on the floor
+            dip = mw.translation.z - min(low[n])
+            if dip > 0.03 * height:
+                out.append(f"FOOT BELOW FLOOR ({n}): {dip:.3f} under the floor (armature origin) at frame {f0 + low[n].index(min(low[n]))}; "
+                           "it clips through the ground (often a swing leg that doesn't fold enough)")
+            floor = min(q.z for p in ps for q in p)
+            speeds = []
+            for a, b in zip(ps, ps[1:]):
+                moves = [(b[i] - a[i]).to_2d().length for i in (0, 1)
+                         if max(a[i].z, b[i].z) - floor < 0.03 * height]
+                if moves:
+                    speeds.append(min(moves))
             if len(speeds) < 2:
                 continue
             if in_place:

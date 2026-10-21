@@ -44,11 +44,13 @@ Blender 5.x: `action.fcurves` is gone. Read curves through `bpy_extras.anim_util
 
 ## Audit
 
-`scripts/audit.py` reads the animation data and reports concrete problems: loop seams that don't match, foot sliding, leftover linear keys, scale keys the engine will drop, every bone keyed on the same frames (no overlap), and left/right twinning. It changes nothing. Run it with `mcp__blender__execute_blender_code`:
+`scripts/audit.py` reads the animation data and reports concrete problems: loop seams that don't match, foot sliding, feet clipping through the floor, leftover linear keys, scale keys the engine will drop, every bone keyed on the same frames (no overlap), and left/right twinning. It changes nothing. Run it with `mcp__blender__execute_blender_code`:
 
 ```python
 exec(open("<SKILL_DIR>/scripts/audit.py").read())
 audit("Armature", engine="unity", loop=True)   # feet=["foot.L","foot.R"] if auto-detect misses
 ```
+
+If the connector is down, don't skip the audit: save the .blend and run it headless with `blender -b file.blend --python-expr "exec(open('<SKILL_DIR>/scripts/audit.py').read()); audit('Armature', loop=True)"`.
 
 Treat its output as hints, not verdicts: a linear key on a mechanical motion or a held pose on purpose is fine. Tell the user what it found and what you will change before changing it.

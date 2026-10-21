@@ -113,24 +113,27 @@ blender -b walk.blend --python-expr "exec(open('skills/keyframe-coach/scripts/au
 Example output:
 
 ```text
-Audit 'rootAction' on root: frames 1-32 @ 30 fps, 51 curves
-LOOP SEAM: 26 curves don't match start/end: pose.bones["b_LeftFoot02_018"].rotation_quaternion[1] (start 0.000/end 0.078); ...
-NO OVERLAP: every animated bone is keyed on the same frames; offset follow-through parts 1-3 frames
-CONSTRAINTS on 4 bones: make sure export bakes animation (Bake Animation / glTF sampling)
-FEET checked: b_LeftFoot01_017, b_LeftFoot02_018, b_RightFoot01_021, b_RightFoot02_022 (in-place)
+Audit 'rootAction' on root: frames 1-33 @ 24 fps, 87 curves
+OVERLAP/TWINNING not checked: keys every 1-2 frames (baked or scripted)
+FOOT BELOW FLOOR (b_LeftHand_011): 4.290 under the floor (armature origin) at frame 19; it clips through the ground (often a swing leg that doesn't fold enough)
+FOOT BELOW FLOOR (b_RightHand_08): 4.297 under the floor (armature origin) at frame 3; it clips through the ground (often a swing leg that doesn't fold enough)
+FEET checked: b_LeftFoot02_018, b_RightFoot02_022, b_LeftHand_011, b_RightHand_08 (in-place)
 ```
 
 | Check | What it catches |
 |---|---|
-| Loop seam | Start and end values or slopes don't match |
-| Foot slide | Planted feet drift (root motion), or slide unevenly (in place) |
+| Loop seam | Start and end values don't match, or hand-keyed end handles jump or stall the motion at the seam |
+| Foot slide | The planted end of the foot (heel or toe) drifts while on the floor (root motion), or slides unevenly (in place) |
+| Foot below floor | The foot's skinned mesh dips under the floor (the armature origin), e.g. a swing leg that doesn't fold |
 | Quaternion flip | A limb swinging the long way round between keys |
 | Scale keys | Squash and stretch your engine (Roblox, Unity Humanoid) will drop |
-| No overlap / twinning | Every bone keyed on the same frames; left and right mirrored |
-| Constraints | IK and other constraints that need baking on export |
+| No overlap / twinning | Every bone keyed on the same frames; left and right keyed alike (skipped when keys are every 1-2 frames) |
+| Constraints | IK and other constraints that need baking on export (only when `engine` is set) |
 | Interpolation | Leftover linear or constant keys |
 
 It finds feet by bone name (`foot`, `ankle`, `leg_ik`); pass `feet=[...]` if your rig names them differently. Treat its output as hints, not verdicts.
+
+Self-test: `blender -b --factory-startup --python-exit-code 1 --python tests/test_audit.py`.
 
 ## What's inside
 
@@ -146,6 +149,8 @@ keyframe-coach/
 │   │   └── engines.md    # Export settings for Unity, Unreal, Godot, Roblox
 │   └── scripts/
 │       └── audit.py      # Read-only animation audit
+├── tests/
+│   └── test_audit.py     # Headless self-test for the audit
 ├── .github/              # Social preview image
 └── assets/               # README comparison GIFs
 ```
@@ -153,7 +158,6 @@ keyframe-coach/
 ## Limitations
 
 - Needs the official MCP for Blender connector and a running Blender with its server started.
-- The audit checks the scene's frame range. If a loop is keyed one frame past the scene end (17 = 1, rendered 1–16), the seam and foot checks can report false problems; set the scene range to the keyed range first.
 - No built-in guidance for four-or-more-legged gaits yet.
 - Roblox R15 and custom skinned rigs are untested; R6 rigs use the separate `roblox-blender-setup` skill.
 - Motion quality still trails a human animator, especially stride length and secondary detail.
