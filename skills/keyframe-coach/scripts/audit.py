@@ -137,9 +137,12 @@ def audit(arm_name, engine="", loop=None, feet=None, in_place=None, eps=1e-3):
                 sole = [zs[m][i] for m, idx in soles[n] for i in idx]
                 low[n].append(min(sole) if sole else min(q.z for q in track[n][-1]))
         scene.frame_set(cur)
-        for n in feet:  # the caller picked these; a bone that never reaches the floor is probably the wrong one
-            if min(low[n]) - mw.translation.z > 0.03 * height:
-                out.append(f"FOOT NOT ON FLOOR ({n}): never comes down to the floor (armature origin); wrong bone, or the clip is airborne")
+        src = {n: "skinned mesh" if any(idx for _, idx in soles[n]) else "bone ends" for n in feet}
+        for n in feet:  # gap given so each leg can be corrected straight from this line
+            gap = min(low[n]) - mw.translation.z
+            if gap > 0.03 * height:
+                out.append(f"FOOT NOT ON FLOOR ({n}): lowest point ({src[n]}) stays {gap:.3f} above the floor (armature origin); "
+                           "it hovers, or isn't a foot bone")
                 del track[n]
         if in_place is None and track:
             in_place = max((ps[-1][0] - ps[0][0]).to_2d().length for ps in track.values()) < 0.1 * height
@@ -149,8 +152,8 @@ def audit(arm_name, engine="", loop=None, feet=None, in_place=None, eps=1e-3):
             # game rigs keep the armature origin on the floor
             dip = mw.translation.z - min(low[n])
             if dip > 0.03 * height:
-                out.append(f"FOOT BELOW FLOOR ({n}): {dip:.3f} under the floor (armature origin) at frame {f0 + low[n].index(min(low[n]))}; "
-                           "it clips through the ground (often a swing leg that doesn't fold enough)")
+                out.append(f"FOOT BELOW FLOOR ({n}): lowest point ({src[n]}) {dip:.3f} under the floor (armature origin) at frame "
+                           f"{f0 + low[n].index(min(low[n]))}; it clips through (often a swing leg that doesn't fold enough)")
             floor = min(q.z for p in ps for q in p)
             speeds = []
             for a, b in zip(ps, ps[1:]):

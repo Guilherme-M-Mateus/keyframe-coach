@@ -73,7 +73,7 @@ assert "FOOT SLIDE" not in run(rig(lambda f: ((0, 0, 0), math.radians(3 * f))), 
 assert "FOOT BELOW FLOOR" in run(rig(gait(lambda u: -u, swing_lift=-0.1)), loop=True, in_place=True)
 assert "FOOT BELOW FLOOR" not in run(rig(gait(lambda u: -u)), loop=True, in_place=True)
 # ...also when only the skinned paw (not the bone) goes under
-assert "FOOT BELOW FLOOR" in run(skin(rig(gait(lambda u: -u)), -0.1), loop=True, in_place=True)
+assert "FOOT BELOW FLOOR (foot): lowest point (skinned mesh) 0.100" in run(skin(rig(gait(lambda u: -u)), -0.1), loop=True, in_place=True)
 assert "FOOT BELOW FLOOR" not in run(skin(rig(gait(lambda u: -u)), 0.0), loop=True, in_place=True)
 # Loop keyed 1..N+1 with N+1 = 1: no seam even though the scene ends at N
 assert "LOOP SEAM" not in run(rig(gait(lambda u: -u), lambda f: math.sin(2 * math.pi * (f - 1) / N)), loop=True)
@@ -145,7 +145,7 @@ def legged(n):
 # Feet come from the caller; a passed bone that never reaches the floor (a lifted tail) is called out and skipped
 arm, lows = legged(4)
 out = "\n".join(audit(arm.name, feet=lows + ["tail"]))
-assert "FOOT NOT ON FLOOR (tail)" in out and f"FEET checked: {', '.join(lows)} " in out
+assert "FOOT NOT ON FLOOR (tail): lowest point (bone ends) stays" in out and f"FEET checked: {', '.join(lows)} " in out
 assert "FEET: not checked" in "\n".join(audit(arm.name))
 print("test_audit: all checks passed")
 sys.exit(0)

@@ -115,8 +115,8 @@ Example output:
 ```text
 Audit 'rootAction' on root: frames 1-33 @ 24 fps, 87 curves
 OVERLAP/TWINNING not checked: keys every 1-2 frames (baked or scripted)
-FOOT BELOW FLOOR (b_LeftHand_011): 4.290 under the floor (armature origin) at frame 19; it clips through the ground (often a swing leg that doesn't fold enough)
-FOOT BELOW FLOOR (b_RightHand_08): 4.297 under the floor (armature origin) at frame 3; it clips through the ground (often a swing leg that doesn't fold enough)
+FOOT BELOW FLOOR (b_LeftHand_011): lowest point (skinned mesh) 4.290 under the floor (armature origin) at frame 19; it clips through (often a swing leg that doesn't fold enough)
+FOOT BELOW FLOOR (b_RightHand_08): lowest point (skinned mesh) 4.297 under the floor (armature origin) at frame 3; it clips through (often a swing leg that doesn't fold enough)
 FEET checked: b_LeftFoot02_018, b_RightFoot02_022, b_LeftHand_011, b_RightHand_08 (in-place)
 ```
 
