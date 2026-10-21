@@ -131,7 +131,7 @@ FEET checked: b_LeftFoot02_018, b_RightFoot02_022, b_LeftHand_011, b_RightHand_0
 | Constraints | IK and other constraints that need baking on export (only when `engine` is set) |
 | Interpolation | Leftover linear or constant keys |
 
-It finds feet by bone name (`foot`, `ankle`, `leg_ik`); pass `feet=[...]` if your rig names them differently. Treat its output as hints, not verdicts.
+It finds feet by shape (the lowest deform bone of each leg in rest pose), so it works for any number of legs and any naming; pass `feet=[...]` to override. Treat its output as hints, not verdicts.
 
 Self-test: `blender -b --factory-startup --python-exit-code 1 --python tests/test_audit.py`.
 
@@ -146,7 +146,8 @@ keyframe-coach/
 │   ├── SKILL.md          # Workflow, questions, connector setup, audit usage
 │   ├── references/
 │   │   ├── principles.md # The 12 principles for games, style dials, frame budgets
-│   │   └── engines.md    # Export settings for Unity, Unreal, Godot, Roblox
+│   │   ├── engines.md    # Export settings for Unity, Unreal, Godot, Roblox
+│   │   └── legs.md       # Gaits for quadrupeds, insects and spiders
 │   └── scripts/
 │       └── audit.py      # Read-only animation audit
 ├── tests/
@@ -158,7 +159,6 @@ keyframe-coach/
 ## Limitations
 
 - Needs the official MCP for Blender connector and a running Blender with its server started.
-- No built-in guidance for four-or-more-legged gaits yet.
 - Roblox R15 and custom skinned rigs are untested; R6 rigs use the separate `roblox-blender-setup` skill.
 - Motion quality still trails a human animator, especially stride length and secondary detail.
 - Results above are single runs on one model.

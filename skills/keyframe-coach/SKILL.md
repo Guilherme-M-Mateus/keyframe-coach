@@ -25,9 +25,9 @@ Ask both with the AskUserQuestion tool in one call. Skip a question only if the 
 1. **Export target**: Unity, Unreal, Godot, Roblox (Other → ask which).
 2. **Style**: Realistic, Stylized/cartoony, Blocky/rigid-part (Roblox-like, low-poly), Anime/snappy.
 
-Then read `references/engines.md` (the target's section only) and the matching style row in `references/principles.md`. For Roblox R6 rigs, also load the `roblox-blender-setup` skill and follow it for the rig and export steps.
+Then read `references/engines.md` (the target's section only) and the matching style row in `references/principles.md`. For Roblox R6 rigs, also load the `roblox-blender-setup` skill and follow it for the rig and export steps. For a creature with more than two legs, also read `references/legs.md`.
 
-Ask these too when they matter and are not obvious from the request: is the clip a **loop** (walk, run, idle) or a **one-shot** (attack, jump)? **In-place or root motion**? Is it **player-triggered** (needs fast startup) or **AI/cinematic**?
+Ask these too when they matter and are not obvious from the request: is the clip a **loop** (walk, run, idle) or a **one-shot** (attack, jump)? **In-place or root motion**? Is it **player-triggered** (needs fast startup) or **AI/cinematic**? For more than two legs: which **gait** (walk, trot, gallop; creep or scuttle for insects and spiders)?
 
 ## Workflow
 
@@ -48,7 +48,7 @@ Blender 5.x: `action.fcurves` is gone. Read curves through `bpy_extras.anim_util
 
 ```python
 exec(open("<SKILL_DIR>/scripts/audit.py").read())
-audit("Armature", engine="unity", loop=True)   # feet=["foot.L","foot.R"] if auto-detect misses
+audit("Armature", engine="unity", loop=True)   # feet=[...] if it misses a leg
 ```
 
 If the connector is down, don't skip the audit: save the .blend and run it headless with `blender -b file.blend --python-expr "exec(open('<SKILL_DIR>/scripts/audit.py').read()); audit('Armature', loop=True)"`.

@@ -113,5 +113,38 @@ for fc in _fcurves(arm)[1]:
     for k in [k for k in fc.keyframe_points if (int(k.co[0]) - 1) % 5][::-1]:
         fc.keyframe_points.remove(k)
 assert "OVERLAP/TWINNING not checked" not in run(arm, loop=True)
+
+
+def legged(n):
+    """n-legged rig: a spine plus two-bone legs reaching the floor; returns (rig, foot names)"""
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    arm = bpy.data.objects.new("Rig", bpy.data.armatures.new("Rig"))
+    bpy.context.scene.collection.objects.link(arm)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="EDIT")
+    spine = arm.data.edit_bones.new("spine")
+    spine.head, spine.tail = (0, -0.5, 0.6), (0, 0.5, 0.6)
+    for i in range(n):
+        x, y = (-0.2, 0.2)[i % 2], -0.4 + 0.8 * (i // 2) / max(1, n // 2 - 1)
+        up = arm.data.edit_bones.new(f"upper{i}")
+        up.head, up.tail, up.parent = (x, y, 0.6), (x * 2, y, 0.3), spine
+        lo = arm.data.edit_bones.new(f"lower{i}")
+        lo.head, lo.tail, lo.parent = (x * 2, y, 0.3), (x * 2, y, 0.0), up
+    tail = arm.data.edit_bones.new("tail")  # hangs to the floor in rest pose, lifted in the clip
+    tail.head, tail.tail, tail.parent = (0, -0.5, 0.6), (0, -0.6, 0.0), spine
+    bpy.ops.object.mode_set(mode="POSE")
+    arm.pose.bones["tail"].rotation_mode = "XYZ"
+    arm.pose.bones["tail"].rotation_euler = (0, 0, 0)
+    arm.pose.bones["tail"].rotation_euler.x = math.radians(-80)
+    for f in (1, 11):
+        arm.pose.bones["spine"].keyframe_insert("location", frame=f)
+        arm.pose.bones["tail"].keyframe_insert("rotation_euler", frame=f)
+    return arm, sorted(f"lower{i}" for i in range(n))
+
+
+# Feet found by shape for 2, 4, 6 and 8 legs (not by name); a tail hanging low in rest pose but lifted is not a foot
+for n in (2, 4, 6, 8):
+    arm, lows = legged(n)
+    assert f"FEET checked: {', '.join(lows)} " in "\n".join(audit(arm.name)), n
 print("test_audit: all checks passed")
 sys.exit(0)
