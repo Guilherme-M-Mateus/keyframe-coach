@@ -158,7 +158,7 @@ keyframe-coach/
 
 ## Limitations
 
-- Needs the official MCP for Blender connector and a running Blender with its server started.
+- Watching it work live needs the official MCP for Blender connector and a running Blender with its server started; without it, the skill runs Blender headless (a local `blender` command is required).
 - Roblox R15 and custom skinned rigs are untested; R6 rigs use the separate `roblox-blender-setup` skill.
 - Motion quality still trails a human animator, especially stride length and secondary detail.
 - Results above are single runs on one model.
